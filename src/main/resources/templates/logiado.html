@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title> Lectio - Biblioteca</title>
+
+    <!-- CSS principal (apunta a tu ruta) -->
+    <link rel="stylesheet" href="/estilos/logiado.css" />
+
+    <!-- Iconos y fuentes -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet"/>
+
+    <!-- CSS adicional solo para móviles + Estilo del botón Desafío -->
+    <style>
+        /* Solo se aplican estos estilos en móviles */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 15px 20px;
+                position: relative;
+            }
+
+            .nav-links {
+                position: fixed;
+                top: 0;
+                right: -100%;
+                width: 70%;
+                height: 100vh;
+                background: #fff;
+                flex-direction: column;
+                justify-content: flex-start;
+                padding-top: 80px;
+                transition: right 0.3s ease;
+                box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+                z-index: 999;
+            }
+
+            .nav-links.active {
+                right: 0;
+            }
+
+            .nav-links a {
+                display: block;
+                width: 100%;
+                text-align: center;
+                padding: 15px;
+                border-radius: 0;
+                margin: 5px 0;
+            }
+
+            .menu-toggle {
+                display: block;
+                position: absolute;
+                right: 20px;
+                top: 20px;
+                z-index: 1000;
+                background: none;
+                border: none;
+                font-size: 1.5rem;
+                color: #2c3e50;
+                cursor: pointer;
+            }
+
+            .overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                z-index: 998;
+                display: none;
+            }
+
+            .overlay.active {
+                display: block;
+            }
+
+            .user-info {
+                margin-top: 10px;
+                flex-direction: column;
+                align-items: flex-start;
+                width: 100%;
+            }
+
+            .shop-container, .autores-container, .contact-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .hero-video-container {
+                height: 60vh;
+                padding-left: 20px;
+            }
+
+            .hero-text {
+                text-align: center;
+                padding-left: 0;
+            }
+        }
+
+        /* Ocultar menú hamburguesa en desktop */
+        @media (min-width: 769px) {
+            .menu-toggle, .overlay {
+                display: none !important;
+            }
+        }
+
+        /* Botón scroll to top para todos los dispositivos */
+        .scroll-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            z-index: 99;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .scroll-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .scroll-to-top:hover {
+            background: #219150;
+            transform: translateY(-3px);
+        }
+
+        /* Estilos para el modal de confirmación de cierre de sesión */
+        .logout-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .logout-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .logout-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            transform: scale(0.8);
+            transition: transform 0.3s ease;
+        }
+
+        .logout-modal.active .logout-content {
+            transform: scale(1);
+        }
+
+        .logout-icon {
+            font-size: 3rem;
+            color: #e74c3c;
+            margin-bottom: 15px;
+        }
+
+        .logout-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .logout-message {
+            font-size: 1rem;
+            color: #7f8c8d;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .logout-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .logout-confirm {
+            padding: 10px 25px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .logout-confirm:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+        }
+
+        .logout-cancel {
+            padding: 10px 25px;
+            background: #95a5a6;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .logout-cancel:hover {
+            background: #7f8c8d;
+            transform: translateY(-2px);
+        }
+
+        /* ===== BOTÓN DESAFÍO DE LECTURA - ESTILO EXACTO ===== */
+        .desafio-link {
+            text-decoration: none !important;
+            color: white !important;
+            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%) !important;
+            border: 2px solid #a855f7 !important;
+            padding: 8px 16px !important;
+            border-radius: 25px !important;
+            font-weight: 600 !important;
+            font-size: 0.95rem !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+            transition: all 0.3s ease !important;
+            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4) !important;
+            animation: legendario-brillo 2s ease-in-out infinite !important;
+        }
+
+        #desafio-icon {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 1rem;
+        }
+
+        .desafio-icon-trophy {
+            font-size: 1.1rem;
+        }
+
+        .desafio-icon-text {
+            letter-spacing: 0.3px;
+        }
+
+        @keyframes legendario-brillo {
+            0%, 100% {
+                box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);
+            }
+            50% {
+                box-shadow: 0 6px 20px rgba(168, 85, 247, 0.6),
+                            0 0 15px rgba(168, 85, 247, 0.3);
+            }
+        }
+
+        .desafio-link:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 25px rgba(124, 58, 237, 0.6),
+                        0 0 20px rgba(168, 85, 247, 0.4) !important;
+            background: linear-gradient(135deg, #a855f7 0%, #d946ef 100%) !important;
+            border-color: #d946ef !important;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Mensaje flotante (éxito/error) -->
+<div id="mensaje-flotante" class="mensaje-exito" aria-live="polite"></div>
+
+<!-- Botón para ir al inicio -->
+<button class="scroll-to-top" aria-label="Volver al inicio">
+    <i class="fas fa-chevron-up"></i>
+</button>
+
+<!-- Modal de confirmación de cierre de sesión -->
+<div class="logout-modal" id="logoutModal">
+    <div class="logout-content">
+        <div class="logout-icon">
+            <i class="fas fa-sign-out-alt"></i>
+        </div>
+        <h2 class="logout-title">¿Estás seguro de cerrar sesión?</h2>
+        <p class="logout-message">
+            Serás redirigido a la página de inicio de sesión.
+        </p>
+        <div class="logout-buttons">
+            <button class="logout-confirm" id="logoutConfirm">Sí, cerrar sesión</button>
+            <button class="logout-cancel" id="logoutCancel">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<!-- NAVBAR (EXACTAMENTE IGUAL AL ORIGINAL para PC) -->
+<header class="navbar">
+    <div class="logo">
+        <h1>Lectio <span>Biblioteca</span></h1>
+    </div>
+
+    <button class="menu-toggle" aria-label="Abrir menú de navegación">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <div class="overlay"></div>
+
+    <nav class="nav-links" aria-label="Navegación principal">
+        <a href="#inicio" class="active">Inicio</a>
+        <a href="#coleccion">Colección</a>
+        <a href="#autores">Autores</a>
+        <a href="#centro-ayuda">Ayuda</a>
+        <a href="/api/libroVirtualesLog">Libros Virtuales</a>
+        <a href="/api/reservaLibro">Reserva</a>
+        <a href="/api/inicio" class="desafio-link">
+            <span id="desafio-icon">
+                <span class="desafio-icon-trophy">🏆</span>
+                <span class="desafio-icon-text">Desafío</span>
+            </span>
+        </a>
+    </nav>
+
+    <!-- User info fuera del nav-links para mantener estructura original en PC -->
+    <div class="user-info">
+        <p>Hola, <strong th:text="${username}"></strong></p>
+        <button type="button" class="btn-salir" id="logoutBtn">Cerrar sesión</button>
+        <!-- Formulario oculto para el cierre de sesión real -->
+        <form action="/api/logout" method="post" id="logoutForm" style="display:none;"></form>
+    </div>
+</header>
+
+<!-- HERO CON VIDEO (EXACTAMENTE IGUAL) -->
+<section class="hero" id="inicio">
+    <div class="hero-video-container">
+        <video autoplay loop muted playsinline class="hero-video">
+            <source src="/img/4k.mp4" type="video/mp4">
+            Tu navegador no soporta la etiqueta de video.
+        </video>
+        <div class="hero-text">
+            <h1 class="title">¡Queremos Conocerte!</h1>
+            <p class="description">Cuéntanos un poco sobre ti para personalizar tu experiencia en nuestra biblioteca virtual.</p>
+            <a href="/api/conocerte" class="btn">Ir al Formulario</a>
+        </div>
+    </div>
+</section>
+
+<!-- COLECCIÓN (EXACTAMENTE IGUAL) -->
+<section class="section" id="coleccion">
+    <h2 class="section-title">Nuestra Colección</h2>
+    <p class="section-subtitle">Encuentra los mejores libros seleccionados especialmente para ti.</p>
+    <div class="shop-container">
+        <div class="shop-item">
+            <img src="/img/libro1.jpeg" alt="El Gran Libro del Conocimiento">
+            <h3>El Gran Libro del Conocimiento</h3>
+            <p>Explora los temas más importantes de la historia humana.</p>
+            <a href="https://www.gutenberg.org/cache/epub/11036/pg11036-images.html" class="btn">Leer</a>
+        </div>
+
+        <div class="shop-item">
+            <img src="/img/libro2.jpeg" alt="Misterios del Universo">
+            <h3>Misterios del Universo</h3>
+            <p>Una mirada fascinante a los secretos del cosmos.</p>
+            <a href="https://www.gutenberg.org/cache/epub/2591/pg2591-images.html" class="btn">Leer</a>
+        </div>
+
+        <div class="shop-item">
+            <img src="/img/libro3.jpeg" alt="Historias de la Antigua Civilización">
+            <h3>Historias de la Antigua Civilización</h3>
+            <p>Relatos sobre las civilizaciones que marcaron la historia.</p>
+            <a href="https://www.gutenberg.org/cache/epub/1064/pg1064-images.html" class="btn">Leer</a>
+        </div>
+    </div>
+</section>
+
+<!-- AUTORES (EXACTAMENTE IGUAL) -->
+<section class="section autores" id="autores">
+    <h2 class="section-title">Autores Destacados</h2>
+    <div class="autores-container">
+        <div class="autor-item">
+            <i class="fas fa-user"></i>
+            <h3>Gabriel García Márquez</h3>
+            <p>"Cien Años de Soledad"</p>
+        </div>
+        <div class="autor-item">
+            <i class="fas fa-user"></i>
+            <h3>Isabel Allende</h3>
+            <p>"La Casa de los Espíritus"</p>
+        </div>
+        <div class="autor-item">
+            <i class="fas fa-user"></i>
+            <h3>Jorge Luis Borges</h3>
+            <p>"Ficciones"</p>
+        </div>
+    </div>
+</section>
+
+<!-- CENTRO DE AYUDA (EXACTAMENTE IGUAL) -->
+<section class="section centro-ayuda" id="centro-ayuda">
+    <h2 class="section-title">Centro de Ayuda</h2>
+    <p class="section-subtitle">¿Tienes dudas o necesitas asistencia? ¡Estamos para ayudarte!</p>
+    <div class="contact-container">
+        <div class="contact-card">
+            <i class="fas fa-envelope"></i>
+            <h3>Escríbenos</h3>
+            <p>servicios@booklab.gov.co</p>
+        </div>
+        <div class="contact-card">
+            <i class="fas fa-phone-alt"></i>
+            <h3>Llámanos</h3>
+            <p>(+57 601) 3424100</p>
+        </div>
+        <div class="contact-card">
+            <i class="fas fa-map-marker-alt"></i>
+            <h3>Visítanos</h3>
+            <p>San Pedro Martin Cra 64 A</p>
+        </div>
+    </div>
+</section>
+
+<!-- RESEÑAS (EXACTAMENTE IGUAL) -->
+<section class="section reseñas" id="reseñas">
+    <h2 class="section-title">Deja Tu Reseña</h2>
+    <p class="section-subtitle">Tu opinión nos ayuda a mejorar nuestra biblioteca.</p>
+
+    <form id="reseña-form" class="reseña-form">
+        <label for="nombre">Nombre:</label>
+        <input type="text" id="nombre" name="nombre" required>
+
+        <label for="comentario">Comentario:</label>
+        <textarea id="comentario" name="comentario" rows="4" required></textarea>
+
+        <button type="submit" class="btn">Enviar Reseña</button>
+        <p id="mensaje-envio" style="display:none; margin-top: 10px;"></p>
+    </form>
+</section>
+
+<!-- FOOTER (EXACTAMENTE IGUAL) -->
+<footer>
+    <p>&copy; 2025 BookLab Biblioteca. Todos los derechos reservados.</p>
+</footer>
+
+<!-- SCRIPTS -->
+<script>
+    /* ===== Activar link según scroll (misma lógica que el principal) ===== */
+    const sections = document.querySelectorAll("section");
+    const navLinks = document.querySelectorAll(".nav-links a");
+
+    window.addEventListener("scroll", () => {
+      let current = "";
+      sections.forEach((section) => {
+        const sectionTop = section.offsetTop;
+        if (scrollY >= sectionTop - 120) current = section.getAttribute("id");
+      });
+      navLinks.forEach((a) => {
+        a.classList.remove("active");
+        if (a.getAttribute("href").includes(current)) a.classList.add("active");
+      });
+    });
+
+    /* ===== Menú hamburguesa SOLO para móviles ===== */
+    const menuToggle = document.querySelector('.menu-toggle');
+    const navLinksContainer = document.querySelector('.nav-links');
+    const overlay = document.querySelector('.overlay');
+
+    if (menuToggle) {
+        menuToggle.addEventListener('click', function() {
+            navLinksContainer.classList.toggle('active');
+            overlay.classList.toggle('active');
+            document.body.style.overflow = navLinksContainer.classList.contains('active') ? 'hidden' : '';
+
+            // Cambiar icono del menú
+            const icon = this.querySelector('i');
+            if (navLinksContainer.classList.contains('active')) {
+                icon.classList.remove('fa-bars');
+                icon.classList.add('fa-times');
+            } else {
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-bars');
+            }
+        });
+
+        // Cerrar menú al hacer clic en el overlay
+        overlay.addEventListener('click', function() {
+            navLinksContainer.classList.remove('active');
+            this.classList.remove('active');
+            document.body.style.overflow = '';
+
+            // Restaurar icono del menú
+            const icon = menuToggle.querySelector('i');
+            icon.classList.remove('fa-times');
+            icon.classList.add('fa-bars');
+        });
+
+        // Cerrar menú al hacer clic en un enlace (en móviles)
+        navLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                if (window.innerWidth <= 768) {
+                    navLinksContainer.classList.remove('active');
+                    overlay.classList.remove('active');
+                    document.body.style.overflow = '';
+
+                    // Restaurar icono del menú
+                    const icon = menuToggle.querySelector('i');
+                    icon.classList.remove('fa-times');
+                    icon.classList.add('fa-bars');
+                }
+            });
+        });
+    }
+
+    /* ===== Botón de scroll to top ===== */
+    const scrollToTopBtn = document.querySelector('.scroll-to-top');
+
+    window.addEventListener('scroll', function() {
+        if (window.pageYOffset > 300) {
+            scrollToTopBtn.classList.add('visible');
+        } else {
+            scrollToTopBtn.classList.remove('visible');
+        }
+    });
+
+    scrollToTopBtn.addEventListener('click', function() {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+
+    /* ===== Envío de reseña (fetch) ===== */
+    document.getElementById('reseña-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      const formData = {
+        nombre: document.getElementById('nombre').value,
+        comentario: document.getElementById('comentario').value
+      };
+
+      const mensajeEnvio = document.getElementById('mensaje-envio');
+      mensajeEnvio.style.display = 'block';
+      mensajeEnvio.style.color = '#333';
+      mensajeEnvio.textContent = 'Enviando reseña...';
+
+      fetch('/api/guardarResena', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `nombre=${encodeURIComponent(formData.nombre)}&comentario=${encodeURIComponent(formData.comentario)}`
+      })
+      .then(response => {
+        if (!response.ok) throw new Error('Error en la respuesta del servidor');
+        return response.text();
+      })
+      .then(() => {
+        mensajeEnvio.textContent = '¡Gracias por tu reseña!';
+        mensajeEnvio.style.color = 'green';
+
+        const mensajeFlotante = document.getElementById('mensaje-flotante');
+        mensajeFlotante.textContent = '✅ Reseña enviada con éxito';
+        mensajeFlotante.style.display = 'block';
+        mensajeFlotante.style.backgroundColor = '#4CAF50';
+
+        setTimeout(() => { mensajeFlotante.style.display = 'none'; }, 3000);
+        setTimeout(() => { document.getElementById('reseña-form').reset(); mensajeEnvio.style.display = 'none'; }, 3000);
+      })
+      .catch(error => {
+        mensajeEnvio.textContent = 'Error al enviar la reseña. Intenta nuevamente.';
+        mensajeEnvio.style.color = 'red';
+
+        const mensajeFlotante = document.getElementById('mensaje-flotante');
+        mensajeFlotante.textContent = '⚠️ Error al enviar la reseña';
+        mensajeFlotante.style.display = 'block';
+        mensajeFlotante.style.backgroundColor = '#f44336';
+
+        setTimeout(() => { mensajeFlotante.style.display = 'none'; }, 3000);
+        console.error('Error:', error);
+      });
+    });
+
+    /* ===== Confirmación de cierre de sesión ===== */
+    const logoutBtn = document.getElementById('logoutBtn');
+    const logoutModal = document.getElementById('logoutModal');
+    const logoutConfirm = document.getElementById('logoutConfirm');
+    const logoutCancel = document.getElementById('logoutCancel');
+    const logoutForm = document.getElementById('logoutForm');
+
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            logoutModal.classList.add('active');
+        });
+    }
+
+    if (logoutCancel) {
+        logoutCancel.addEventListener('click', function() {
+            logoutModal.classList.remove('active');
+        });
+    }
+
+    if (logoutConfirm) {
+        logoutConfirm.addEventListener('click', function() {
+            logoutForm.submit();
+        });
+    }
+
+    logoutModal.addEventListener('click', function(e) {
+        if (e.target === logoutModal) {
+            logoutModal.classList.remove('active');
+        }
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && logoutModal.classList.contains('active')) {
+            logoutModal.c2lassList.remove('active');
+        }
+    });
+</script>
+</body>
+</html>

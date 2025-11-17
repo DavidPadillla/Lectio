@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Reservas - Lectio Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f5f6fa;
+            color: #2c3e50;
+        }
+
+        /* Header Sticky */
+        .navbar {
+            background: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 60px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .logo span {
+            color: #27ae60;
+            font-weight: 600;
+        }
+
+        .back-btn {
+            background: #27ae60;
+            color: #fff;
+            padding: 10px 25px;
+            border: none;
+            border-radius: 30px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .back-btn:hover {
+            background: #219150;
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 20px rgba(39, 174, 96, 0.4);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 0 40px;
+        }
+
+        .page-header {
+            margin-bottom: 30px;
+            animation: fadeInDown 0.6s ease;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .page-subtitle {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+
+        /* Filters Card */
+        .filters-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
+            margin-bottom: 25px;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 0;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+
+        .form-group label i {
+            color: #27ae60;
+            margin-right: 6px;
+        }
+
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: #27ae60;
+            box-shadow: 0 0 0 4px rgba(39, 174, 96, 0.1);
+        }
+
+        /* Results Card */
+        .results-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
+            animation: fadeInUp 0.6s ease 0.2s both;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .results-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .results-header i {
+            color: #27ae60;
+            font-size: 1.3rem;
+        }
+
+        .counter {
+            background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        /* Books Grid */
+        .books-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .book-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .book-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(39, 174, 96, 0.15);
+            border-color: #27ae60;
+        }
+
+        .book-card h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .book-card p {
+            font-size: 13px;
+            color: #7f8c8d;
+            margin-bottom: 6px;
+        }
+
+        .book-card p strong {
+            color: #2c3e50;
+        }
+
+        .btn-select {
+            width: 100%;
+            background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-select:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(39, 174, 96, 0.3);
+        }
+
+        /* Form Card */
+        .form-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
+            margin-top: 25px;
+            border: 2px solid #27ae60;
+            animation: slideInBounce 0.5s ease;
+        }
+
+        @keyframes slideInBounce {
+            0% {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            50% {
+                transform: translateY(5px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-card h3 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-card h3 i {
+            color: #27ae60;
+            font-size: 1.5rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(39, 174, 96, 0.3);
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #2c3e50;
+        }
+
+        .btn-secondary:hover {
+            background: #d0d0d0;
+        }
+
+        /* Success Message */
+        .success-message {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            color: #155724;
+            padding: 14px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            border: 2px solid #28a745;
+            animation: slideInBounce 0.5s ease;
+        }
+
+        .success-message i {
+            font-size: 1.2rem;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+        }
+
+        .loading i {
+            font-size: 3rem;
+            color: #27ae60;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #95a5a6;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                gap: 15px;
+                padding: 15px 20px;
+            }
+
+            .container {
+                padding: 0 20px;
+                margin: 30px auto;
+            }
+
+            .filters-grid,
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .books-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+        }
+
+        /* Footer */
+        footer {
+            background: #2c3e50;
+            color: #fff;
+            text-align: center;
+            padding: 20px;
+            font-size: 0.9rem;
+            margin-top: 60px;
+        }
+    </style>
+</head>
+<body>
+<!-- Header -->
+<header class="navbar">
+    <div class="logo">
+        <h1>Lectio <span>Admin</span></h1>
+    </div>
+    <a href="/api/admin" class="back-btn">
+        <i class="fas fa-arrow-left"></i> Volver al Panel
+    </a>
+</header>
+
+<!-- Container -->
+<div class="container">
+    <div class="page-header">
+        <h1 class="page-title">Gestión de Reservas</h1>
+        <p class="page-subtitle">Crea y administra reservas de libros para los usuarios</p>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-card">
+        <div class="filters-grid">
+            <div class="form-group">
+                <label>
+                    <i class="fas fa-tags"></i> Categoría
+                </label>
+                <select id="categoria" required>
+                    <option value="" disabled selected>Selecciona una categoría</option>
+                    <option th:each="cat : ${categorias}" th:value="${cat}" th:text="${cat}">Categoría</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="grupo-busqueda" style="display:none;">
+                <label>
+                    <i class="fas fa-search"></i> Buscar Libro
+                </label>
+                <input type="text" id="busqueda" placeholder="Título, autor...">
+            </div>
+        </div>
+    </div>
+
+    <!-- Results -->
+    <div class="results-card" id="resultados-container" style="display:none;">
+        <div class="results-header">
+            <h3>
+                <i class="fas fa-book"></i> Libros Disponibles
+            </h3>
+            <span class="counter" id="contador">0 libros encontrados</span>
+        </div>
+
+        <div class="books-grid" id="lista-libros">
+            <!-- Los libros se cargarán aquí dinámicamente -->
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="form-card" id="formulario-reserva" style="display:none;">
+        <h3>
+            <i class="fas fa-clipboard-check"></i> Completar Reserva
+        </h3>
+
+        <div class="success-message" id="mensaje-exito">
+            <i class="fas fa-check-circle"></i>
+            <span>¡Reserva realizada con éxito!</span>
+        </div>
+
+        <form id="reserva-form">
+            <input type="hidden" id="libro-seleccionado" name="libro">
+            <input type="hidden" id="categoria-seleccionada" name="categoria">
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>
+                        <i class="fas fa-id-card"></i> ID de Usuario
+                    </label>
+                    <input type="text" id="idUsuario" name="idUsuario" required placeholder="Ej: 12345">
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <i class="fas fa-user"></i> Nombre Completo
+                    </label>
+                    <input type="text" id="nombreCompleto" name="nombreCompleto" required placeholder="Ej: Juan Pérez">
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <i class="fas fa-envelope"></i> Correo Electrónico
+                    </label>
+                    <input type="email" id="correo" name="correo" required placeholder="usuario@ejemplo.com">
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <i class="fas fa-calendar-alt"></i> Fecha de Reserva
+                    </label>
+                    <input type="date" id="fecha" name="fecha" required>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" id="cancelar-reserva" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-check-circle"></i> Confirmar Reserva
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer>
+    <p>&copy; 2025 Lectio Biblioteca. Todos los derechos reservados.</p>
+</footer>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        let todosLosLibros = [];
+        let librosFiltrados = [];
+
+        $('#categoria').change(function() {
+            const categoria = $(this).val();
+            if (categoria) {
+                cargarLibros(categoria);
+                $('#grupo-busqueda').slideDown();
+            } else {
+                $('#resultados-container').slideUp();
+                $('#grupo-busqueda').slideUp();
+            }
+        });
+
+        $('#busqueda').keyup(function() {
+            filtrarLibros();
+        });
+
+        $('#cancelar-reserva').click(function() {
+            $('#formulario-reserva').slideUp();
+            $('#mensaje-exito').hide();
+        });
+
+        $('#reserva-form').submit(function(e) {
+            e.preventDefault();
+            enviarReserva();
+        });
+
+        function cargarLibros(categoria) {
+            $.ajax({
+                url: '/api/cargarLibrosPorCategoria',
+                type: 'GET',
+                data: { categoria: categoria },
+                beforeSend: function() {
+                    $('#lista-libros').html('<div class="loading"><i class="fas fa-spinner"></i><p>Cargando libros...</p></div>');
+                },
+                success: function(data) {
+                    todosLosLibros = data;
+                    librosFiltrados = data;
+                    mostrarLibros(data);
+                    $('#categoria-seleccionada').val(categoria);
+                    $('#resultados-container').slideDown();
+                },
+                error: function() {
+                    alert('Error al cargar los libros');
+                }
+            });
+        }
+
+        function filtrarLibros() {
+            const busqueda = $('#busqueda').val().toLowerCase();
+            if (busqueda === '') {
+                librosFiltrados = todosLosLibros;
+            } else {
+                librosFiltrados = todosLosLibros.filter(function(libro) {
+                    return libro.titulo.toLowerCase().includes(busqueda) ||
+                           (libro.autor && libro.autor.toLowerCase().includes(busqueda));
+                });
+            }
+            mostrarLibros(librosFiltrados);
+        }
+
+        function mostrarLibros(libros) {
+            const $lista = $('#lista-libros');
+            $lista.empty();
+
+            if (libros.length === 0) {
+                $lista.html('<div class="empty-state"><i class="fas fa-search"></i><h3>No se encontraron libros</h3><p>Intenta con otro término de búsqueda</p></div>');
+                $('#contador').text('0 libros encontrados');
+                return;
+            }
+
+            $('#contador').text(libros.length + ' libros encontrados');
+
+            libros.forEach(function(libro) {
+                $lista.append(`
+                    <div class="book-card" data-titulo="${libro.titulo}">
+                        <h4>${libro.titulo}</h4>
+                        ${libro.autor ? `<p><strong>Autor:</strong> ${libro.autor}</p>` : ''}
+                        ${libro.anioPublicacion ? `<p><strong>Año:</strong> ${libro.anioPublicacion}</p>` : ''}
+                        <button class="btn-select">
+                            <i class="fas fa-check-circle"></i> Seleccionar
+                        </button>
+                    </div>
+                `);
+            });
+
+            $('.btn-select').click(function() {
+                const titulo = $(this).closest('.book-card').data('titulo');
+                $('#libro-seleccionado').val(titulo);
+                $('#formulario-reserva').slideDown();
+                $('#mensaje-exito').hide();
+                $('html, body').animate({
+                    scrollTop: $('#formulario-reserva').offset().top - 100
+                }, 500);
+            });
+        }
+
+        function enviarReserva() {
+            const formData = $('#reserva-form').serialize();
+            $.ajax({
+                url: '/api/guardarReservaUsuario',
+                type: 'POST',
+                data: formData,
+                success: function(response) {
+                    $('#reserva-form')[0].reset();
+                    $('#mensaje-exito').css('display', 'flex').delay(5000).fadeOut();
+                },
+                error: function() {
+                    alert('Error al realizar la reserva');
+                }
+            });
+        }
+    });
+</script>
+</body>
+</html>
