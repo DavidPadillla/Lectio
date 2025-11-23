@@ -37,12 +37,16 @@ public class ReservaService {
         }
     }
 
-    // --- Nuevo método para obtener la categoría más reservada ---
+    // --- CORREGIDO: Obtener la categoría más reservada ---
     public String obtenerCategoriaMasReservada() throws Exception {
-        // Ruta del archivo .arff (colócalo en src/main/resources/)
-        String rutaArff = "src/main/resources/reservas.arff";
+        // Leer desde el classpath (funciona en local y en Render)
+        InputStream inputStream = getClass().getResourceAsStream("/reservas.arff");
 
-        BufferedReader reader = new BufferedReader(new FileReader(rutaArff));
+        if (inputStream == null) {
+            throw new RuntimeException("No se encontró reservas.arff en resources");
+        }
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
         Instances data = new Instances(reader);
         reader.close();
 
@@ -60,11 +64,15 @@ public class ReservaService {
         return categoriaMasReservada;
     }
 
-    // Método adicional para obtener el conteo completo (opcional)
+    // --- CORREGIDO: Obtener estadísticas completas ---
     public Map<String, Integer> obtenerEstadisticasCategorias() throws Exception {
-        String rutaArff = "src/main/resources/reservas.arff";
+        InputStream inputStream = getClass().getResourceAsStream("/reservas.arff");
 
-        BufferedReader reader = new BufferedReader(new FileReader(rutaArff));
+        if (inputStream == null) {
+            throw new RuntimeException("No se encontró reservas.arff en resources");
+        }
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
         Instances data = new Instances(reader);
         reader.close();
 
