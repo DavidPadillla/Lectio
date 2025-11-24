@@ -16,6 +16,8 @@ public class EmailService {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom("lectio.biblio@gmail.com");
             helper.setTo(destinatario);
             helper.setSubject("Confirmación de Reserva - Lectio Biblioteca");
 
@@ -60,7 +62,7 @@ public class EmailService {
                             "</div>" +
                             "</td></tr>" +
 
-                            "<!-- FOOTER MEJORADO -->" +
+                            "<!-- FOOTER -->" +
                             "<tr><td style='background:#f1faf6;text-align:center;padding:20px 15px;font-size:1.03rem;border-top:1px solid #e1e1e1;border-radius:0 0 16px 16px;'>" +
                             "<div style='font-size:1.13rem;color:#27ae60;font-weight:700;margin-bottom:8px;letter-spacing:0.1px;'>Más que leer, es aprender, conectar y crecer.</div>" +
                             "<div style='color:#7f8c8d;font-size:0.98rem;margin-bottom:3px;'>Este mensaje fue enviado automáticamente, por favor no respondas.</div>" +
@@ -76,6 +78,7 @@ public class EmailService {
             mailSender.send(message);
         } catch (Exception e) {
             System.err.println("Error enviando email HTML: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }
