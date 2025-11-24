@@ -348,13 +348,13 @@ public class WebController {
     }
 
     @PostMapping("/guardarReservaUsuario")
-    public String guardarReservaUsuario(@RequestParam String idUsuario,
-                                        @RequestParam String nombreCompleto,
-                                        @RequestParam String correo,
-                                        @RequestParam String categoria,
-                                        @RequestParam String libro,
-                                        @RequestParam String fecha,
-                                        RedirectAttributes redirectAttributes) {
+    @ResponseBody
+    public ResponseEntity<?> guardarReservaUsuario(@RequestParam String idUsuario,
+                                                   @RequestParam String nombreCompleto,
+                                                   @RequestParam String correo,
+                                                   @RequestParam String categoria,
+                                                   @RequestParam String libro,
+                                                   @RequestParam String fecha) {
         try {
             ReservaModel reserva = new ReservaModel(
                     idUsuario, nombreCompleto, correo, categoria, libro, LocalDate.parse(fecha)
@@ -372,11 +372,18 @@ public class WebController {
                     categoria
             );
 
-            redirectAttributes.addFlashAttribute("mensaje", "Reserva realizada con éxito.");
+            return ResponseEntity.ok().body(Map.of(
+                    "success", true,
+                    "mensaje", "Reserva realizada con éxito."
+            ));
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Error al realizar la reserva. Inténtalo nuevamente.");
+            System.err.println("❌ Error al guardar reserva: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of(
+                    "success", false,
+                    "error", "Error al realizar la reserva. Inténtalo nuevamente."
+            ));
         }
-        return "redirect:/api/mensajeReservaUsuario";
     }
 
     // ========== GESTIÓN DE DEVOLUCIONES ==========
